@@ -28,6 +28,14 @@ class TaskListController: UITableViewController {
             guard var _ = tasks[task.type] else { return }
             tasks[task.type]!.append(task)
         }
+
+        sortTasks()
+    }
+    
+    private func sortTasks() {
+        for (taskType, task) in tasks {
+            tasks[taskType] = task.sorted(by: { $0.status.rawValue < $1.status.rawValue })
+        }
     }
 
     // MARK: - Table view data source
