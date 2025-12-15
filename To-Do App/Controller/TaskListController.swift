@@ -118,8 +118,6 @@ class TaskListController: UITableViewController {
         if typeFrom != typeTo {
             tasks[typeTo]![to.row].type = typeTo
         }
-        
-        sortTasks()
     }
 
     // MARK: - Table view delegate
@@ -129,6 +127,7 @@ class TaskListController: UITableViewController {
         let taskType = selectedType[indexPath.section]
         guard let task = tasks[taskType]?[indexPath.row] else { return nil }
         
+        // EDIT EXISTING TASK
         let editTaskAction = UIContextualAction(
             style: .normal,
             title: "Edit") { _, _, _ in
@@ -149,10 +148,36 @@ class TaskListController: UITableViewController {
                 }
                 self.navigationController?.pushViewController(editScreen, animated: true)
             }
+        editTaskAction.backgroundColor = .systemMint
         
-        actionsConfiguration = UISwipeActionsConfiguration(actions: [editTaskAction])
+        let changeStatusAction = UIContextualAction(
+            style: .normal,
+            title: "Not completed") { _, _, _ in
+                if task.status == .completed {
+                    self.tasks[taskType]![indexPath.row].status = .planned
+                    tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .automatic)
+                }
+            }
+        changeStatusAction.backgroundColor = .lightGray
         
+        if task.status == .completed {
+            actionsConfiguration = UISwipeActionsConfiguration(actions: [changeStatusAction, editTaskAction])
+        } else {
+            actionsConfiguration = UISwipeActionsConfiguration(actions: [editTaskAction])
+        }
         return actionsConfiguration
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let type = selectedType[indexPath.section]
+        guard let task = tasks[type]?[indexPath.row] else { return }
+        
+        if task.status == .planned {
+            tasks[type]![indexPath.row].status = .completed
+            tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .automatic)
+        } else {
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
     }
 
 }
