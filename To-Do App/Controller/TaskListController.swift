@@ -39,6 +39,19 @@ class TaskListController: UITableViewController {
             tasks[taskType] = task.sorted(by: { $0.status.rawValue < $1.status.rawValue })
         }
     }
+    
+    // ADD NEW TASK
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        super.prepare(for: segue, sender: sender)
+        guard segue.identifier == "toEditScreen" else { return }
+        let editScreen = segue.destination as! EditOrAddTaskController
+        editScreen.doAfterEditing = { [unowned self] title, type, status in
+            tasks[type]?.append(Task(title: title, type: type, status: status))
+            sortTasks()
+            tableView.reloadData()
+        }
+                
+    }
 
     // MARK: - Table view data source
     
@@ -109,15 +122,37 @@ class TaskListController: UITableViewController {
         sortTasks()
     }
 
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    // MARK: - Table view delegate
+    
+    override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        var actionsConfiguration = UISwipeActionsConfiguration()
+        let taskType = selectedType[indexPath.section]
+        guard let task = tasks[taskType]?[indexPath.row] else { return nil }
+        
+        let editTaskAction = UIContextualAction(
+            style: .normal,
+            title: "Edit") { _, _, _ in
+                let editScreen = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "editScreen") as! EditOrAddTaskController
+                editScreen.taskTitle = task.title
+                editScreen.taskType = task.type
+                editScreen.taskStatus = task.status
+                editScreen.doAfterEditing = { [unowned self] title, type, status in
+                    let editedTask = Task(title: title, type: type, status: status)
+                    if taskType == type {
+                        tasks[taskType]![indexPath.row] = editedTask
+                    } else {
+                        tasks[taskType]!.remove(at: indexPath.row)
+                        tasks[type]!.append(editedTask)
+                    }
+                    sortTasks()
+                    tableView.reloadData()
+                }
+                self.navigationController?.pushViewController(editScreen, animated: true)
+            }
+        
+        actionsConfiguration = UISwipeActionsConfiguration(actions: [editTaskAction])
+        
+        return actionsConfiguration
     }
-    */
 
 }
