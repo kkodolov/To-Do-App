@@ -1,4 +1,3 @@
-
 import UIKit
 
 class TaskListController: UITableViewController {
@@ -47,7 +46,7 @@ class TaskListController: UITableViewController {
             sortTasks()
             tableView.reloadData()
         }
-                
+        editScreen.title = "Add new task"
     }
 
     // MARK: - Table view data source
@@ -120,38 +119,6 @@ class TaskListController: UITableViewController {
         return cell
     }
 
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        let type = selectedType[indexPath.section]
-        guard var tasksInSection = tasks[type], !tasksInSection.isEmpty else { return }
-        
-        tasksInSection.remove(at: indexPath.row)
-        tasks[type] = tasksInSection
-        
-        if tasksInSection.isEmpty {
-            tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .automatic)
-        } else {
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-        }
-    }
-
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-        let typeFrom = selectedType[fromIndexPath.section]
-        let typeTo = selectedType[to.section]
-        
-        guard let movedItem = tasks[typeFrom]?[fromIndexPath.row] else { return }
-        
-        tasks[typeFrom]!.remove(at: fromIndexPath.row)
-        tasks[typeTo]!.insert(movedItem, at: to.row)
-    }
-    
-    override func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt originalIndexPath: IndexPath, toProposedIndexPath proposedIndexPath: IndexPath) -> IndexPath {
-        if originalIndexPath.section != proposedIndexPath.section {
-            return originalIndexPath
-        }
-        return proposedIndexPath
-    }
-
-
     // MARK: - Table view delegate
     
     override func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -178,6 +145,7 @@ class TaskListController: UITableViewController {
                     sortTasks()
                     tableView.reloadData()
                 }
+                editScreen.title = "Edit task"
                 self.navigationController?.pushViewController(editScreen, animated: true)
             }
         editTaskAction.backgroundColor = .systemMint
@@ -225,5 +193,35 @@ class TaskListController: UITableViewController {
         let type = selectedType[indexPath.section]
         return !(tasks[type]?.isEmpty ?? true)
     }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        let type = selectedType[indexPath.section]
+        guard var tasksInSection = tasks[type], !tasksInSection.isEmpty else { return }
+        
+        tasksInSection.remove(at: indexPath.row)
+        tasks[type] = tasksInSection
+        
+        if tasksInSection.isEmpty {
+            tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .automatic)
+        } else {
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+    }
 
+    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
+        let typeFrom = selectedType[fromIndexPath.section]
+        let typeTo = selectedType[to.section]
+        
+        guard let movedItem = tasks[typeFrom]?[fromIndexPath.row] else { return }
+        
+        tasks[typeFrom]!.remove(at: fromIndexPath.row)
+        tasks[typeTo]!.insert(movedItem, at: to.row)
+    }
+    
+    override func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt originalIndexPath: IndexPath, toProposedIndexPath proposedIndexPath: IndexPath) -> IndexPath {
+        if originalIndexPath.section != proposedIndexPath.section {
+            return originalIndexPath
+        }
+        return proposedIndexPath
+    }
 }
