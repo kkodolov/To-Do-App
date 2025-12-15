@@ -12,6 +12,7 @@ class TaskListController: UITableViewController {
         
         loadTasks()
         
+        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "infoCell")
         self.navigationItem.leftBarButtonItem = editButtonItem
     }
     
@@ -62,12 +63,35 @@ class TaskListController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         let type = selectedType[section]
-        return tasks[type]?.count ?? 0
+        let count = tasks[type]?.count ?? 0
+        return count == 0 ? 1 : count
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return getConfiguredCell(by: indexPath)
+        let type = selectedType[indexPath.section]
+        let isEmpty = tasks[type]?.isEmpty ?? true
+        
+        if isEmpty {
+            return getInfoCell(by: indexPath)
+        } else {
+            return getConfiguredCell(by: indexPath)
+        }
+    }
+    
+    private func getInfoCell(by indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "infoCell", for: indexPath)
+        var config = cell.defaultContentConfiguration()
+        
+        config.text = "No tasks in the current type"
+        config.textProperties.alignment = .center
+        config.textProperties.color = .secondaryLabel
+        cell.contentConfiguration = config
+        
+        cell.isUserInteractionEnabled = false
+        cell.selectionStyle = .none
+        
+        return cell
     }
     
     private func getConfiguredCell(by indexPath: IndexPath) -> UITableViewCell {
@@ -96,8 +120,16 @@ class TaskListController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         let type = selectedType[indexPath.section]
-        tasks[type]?.remove(at: indexPath.row)
-        tableView.deleteRows(at: [indexPath], with: .automatic)
+        guard var tasksInSection = tasks[type], !tasksInSection.isEmpty else { return }
+        
+        tasksInSection.remove(at: indexPath.row)
+        tasks[type] = tasksInSection
+        
+        if tasksInSection.isEmpty {
+            tableView.reloadSections(IndexSet(arrayLiteral: indexPath.section), with: .automatic)
+        } else {
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
     }
 
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
@@ -108,11 +140,15 @@ class TaskListController: UITableViewController {
         
         tasks[typeFrom]!.remove(at: fromIndexPath.row)
         tasks[typeTo]!.insert(movedItem, at: to.row)
-        
-        if typeFrom != typeTo {
-            tasks[typeTo]![to.row].type = typeTo
-        }
     }
+    
+    override func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt originalIndexPath: IndexPath, toProposedIndexPath proposedIndexPath: IndexPath) -> IndexPath {
+        if originalIndexPath.section != proposedIndexPath.section {
+            return originalIndexPath
+        }
+        return proposedIndexPath
+    }
+
 
     // MARK: - Table view delegate
     
@@ -164,6 +200,10 @@ class TaskListController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let type = selectedType[indexPath.section]
+        guard let taskType = tasks[type], !taskType.isEmpty else {
+            tableView.deselectRow(at: indexPath, animated: true)
+            return
+        }
         guard let task = tasks[type]?[indexPath.row] else { return }
         
         if task.status == .planned {
@@ -172,6 +212,16 @@ class TaskListController: UITableViewController {
         } else {
             tableView.deselectRow(at: indexPath, animated: true)
         }
+    }
+    
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        let type = selectedType[indexPath.section]
+        return !(tasks[type]?.isEmpty ?? true)
+    }
+    
+    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        let type = selectedType[indexPath.section]
+        return !(tasks[type]?.isEmpty ?? true)
     }
 
 }
