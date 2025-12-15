@@ -1,9 +1,3 @@
-//
-//  TaskListController.swift
-//  To-Do App
-//
-//  Created by Костя Кодолов on 13.12.2025.
-//
 
 import UIKit
 

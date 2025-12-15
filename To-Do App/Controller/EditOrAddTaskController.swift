@@ -12,6 +12,7 @@ class EditOrAddTaskController: UITableViewController {
     @IBOutlet weak var textField: UITextField!
     @IBOutlet weak var taskTypeLabel: UILabel!
     @IBOutlet weak var switchLabel: UISwitch!
+    @IBOutlet weak var saveLabel: UIBarButtonItem!
     
     var taskTitle: String = ""
     var taskType: TaskType = .normal
@@ -23,6 +24,9 @@ class EditOrAddTaskController: UITableViewController {
         .important: "Important",
         .normal: "Normal"
     ]
+    private var trimmedTitle: String {
+        textField.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,6 +39,7 @@ class EditOrAddTaskController: UITableViewController {
         textField.text = taskTitle
         taskTypeLabel.text = taskTypes[taskType]
         switchLabel.isOn = taskStatus == .completed ? true : false
+        saveLabel.isEnabled = !trimmedTitle.isEmpty
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -49,11 +54,15 @@ class EditOrAddTaskController: UITableViewController {
     }
     
     @IBAction func saveButton(_ sender: UIBarButtonItem) {
-        let title = textField.text ?? ""
+        let title = trimmedTitle.isEmpty ? "No name" : trimmedTitle
         let type: TaskType = taskType
         let status: TaskStatus = switchLabel.isOn ? .completed : .planned
         doAfterEditing?(title, type, status)
         navigationController?.popViewController(animated: true)
+    }
+    
+    @IBAction func textChanged(_ sender: UITextField) {
+        saveLabel.isEnabled = !trimmedTitle.isEmpty
     }
     
 

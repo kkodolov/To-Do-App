@@ -93,6 +93,9 @@
                                                     <rect key="frame" x="20" y="10.999999999999998" width="353" height="22.333333333333329"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="textChanged:" destination="XXy-Jb-7IA" eventType="editingChanged" id="r2c-Gq-y10"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                             <constraints>
@@ -182,6 +185,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="saveLabel" destination="pi9-ns-cYS" id="CCD-UF-qoY"/>
                         <outlet property="switchLabel" destination="2cg-ig-Wgl" id="cp4-QI-1mX"/>
                         <outlet property="taskTypeLabel" destination="YKx-1w-xhM" id="kMC-3Y-J4k"/>
                         <outlet property="textField" destination="Whc-6z-gDh" id="qGl-bx-cV5"/>
