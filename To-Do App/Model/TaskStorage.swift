@@ -23,17 +23,29 @@ class TaskStorage: TaskStorageProtocol {
         case status
     }
     
-    func save(tasks: [any TaskProtocol]) {}
+    func save(tasks: [any TaskProtocol]) {
+        var arrayForStorage: [[String: String]] = []
+        tasks.forEach { task in
+            var newElementForStorage: [String: String] = [:]
+            newElementForStorage[TaskKey.title.rawValue] = task.title
+            newElementForStorage[TaskKey.type.rawValue] = task.type == .important ? "Important" : "Normal"
+            newElementForStorage[TaskKey.status.rawValue] = task.status == .planned ? "Planned" : "Completed"
+            arrayForStorage.append(newElementForStorage)
+        }
+        storage.set(arrayForStorage, forKey: storageKey)
+    }
     
     func load() -> [any TaskProtocol] {
-        let tasksFromStorage: [TaskProtocol] = [
-            Task(title: "Купить молоко", type: .normal, status: .planned),
-            Task(title: "Забрать дочь из садика", type: .important, status: .planned),
-            Task(title: "Заправить машину", type: .important, status: .completed),
-            Task(title: "Сделать дома уборку", type: .normal, status: .completed),
-            Task(title: "Записаться к доктору", type: .important, status: .planned),
-            Task(title: "Освоить програмирование", type: .important, status: .planned)
-        ]
-        return tasksFromStorage
+        let tasksFromStorage = storage.array(forKey: storageKey) as? [[String: String]] ?? []
+        var storage: [TaskProtocol] = []
+        for task in tasksFromStorage {
+            guard let title = task[TaskKey.title.rawValue],
+                  let type: TaskType = task[TaskKey.type.rawValue] == "Important" ? .important : .normal,
+                  let status: TaskStatus = task[TaskKey.status.rawValue] == "Planned" ? .planned : .completed else { continue }
+            
+            let taskForStorage = Task(title: title, type: type, status: status)
+            storage.append(taskForStorage)
+        }
+        return storage
     }
 }

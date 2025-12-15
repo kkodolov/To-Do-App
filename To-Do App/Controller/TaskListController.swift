@@ -4,28 +4,30 @@ import UIKit
 class TaskListController: UITableViewController {
     
     var taskStorage: TaskStorageProtocol = TaskStorage()
-    var tasks: [TaskType: [TaskProtocol]] = [:]
+    var tasks: [TaskType: [TaskProtocol]] = [:] {
+        didSet {
+            let array = tasks.values.flatMap { $0 }
+            taskStorage.save(tasks: array)
+        }
+    }
     var selectedType: [TaskType] = [.important, .normal]
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        loadTasks()
-        
+               
         self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "infoCell")
         self.navigationItem.leftBarButtonItem = editButtonItem
     }
     
-    private func loadTasks() {
+    func setTasks(_ tasksCollection: [TaskProtocol]) {
         selectedType.forEach { type in
             tasks[type] = []
         }
         
-        taskStorage.load().forEach { task in
-            guard var _ = tasks[task.type] else { return }
-            tasks[task.type]!.append(task)
+        tasksCollection.forEach { task in
+            tasks[task.type]?.append(task)
         }
-
+        
         sortTasks()
     }
     
